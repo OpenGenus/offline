@@ -1,0 +1,13 @@
+{
+	"domain":"https://github.com/OpenGenus/offline",
+	"skipext":	[
+					"pdf",
+					"xml"
+				],
+	"parserobots":false,
+	"debug":true,
+	"output":"sitemap.xml",
+	"exclude":	[
+				"action=edit"
+				]
+}
