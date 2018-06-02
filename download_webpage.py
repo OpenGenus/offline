@@ -1,29 +1,20 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from __future__ import print_function
-
-import argparse
 import base64
 import datetime
 import os
 import re
 import sys
-import codecs
 import requests
+import time
 from bs4 import BeautifulSoup
 from termcolor import colored
-
 if sys.version > '3':
     from urllib.parse import urlparse, urlunsplit, urljoin, quote
 else:
     from urlparse import urlparse, urlunsplit, urljoin
     from urllib import quote
-sys.stdout = codecs.getwriter('utf8')(sys.stdout.buffer)
 re_css_url = re.compile('(url\(.*?\))')
 webpage2html_cache = {}
-
-
 def log(s, color=None, on_color=None, attrs=None, new_line=True):
     if not color:
         print(str(s), end=' ', file=sys.stderr)
@@ -40,8 +31,6 @@ def absurl(index, relpath=None, normpath=None):
     if index.lower().startswith('http') or (relpath and relpath.startswith('http')):
         new = urlparse(urljoin(index, relpath))
         return urlunsplit((new.scheme, new.netloc, normpath(new.path), new.query, ''))
-        # normpath不是函数，为什么这里一直用normpath(path)这种格式
-        # netloc contains basic auth, so do not use domain
     else:
         if relpath:
             return normpath(os.path.join(os.path.dirname(index), relpath))
@@ -57,8 +46,6 @@ def get(index, relpath=None, verbose=True, usecache=True, verify=True, ignore_er
             if verbose:
                 log('[ WARN ] invalid path, %s %s' % (index, relpath), 'yellow')
             return '', None
-        # urllib2 only accepts valid url, the following code is taken from urllib
-        # http://svn.python.org/view/python/trunk/Lib/urllib.py?r1=71780&r2=71779&pathrev=71780
         full_path = quote(full_path, safe="%/:=&?~#+!$,;'@()*[]")
         if usecache:
             if full_path in webpage2html_cache:
@@ -69,7 +56,7 @@ def get(index, relpath=None, verbose=True, usecache=True, verify=True, ignore_er
             'User-Agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Win64; x64; Trident/6.0)'
         }
         try:
-            response = requests.get(full_path, headers=headers, verify=verify)
+            response=requests.get(full_path, headers=headers, verify=verify)
             if verbose:
                 log('[ GET ] %d - %s' % (response.status_code, response.url))
             if not ignore_error and (response.status_code >= 400 or response.status_code < 200):
@@ -118,7 +105,6 @@ def get(index, relpath=None, verbose=True, usecache=True, verify=True, ignore_er
 
 
 def data_to_base64(index, src, verbose=True):
-    # doc here: http://en.wikipedia.org/wiki/Data_URI_scheme
     sp = urlparse(src).path.lower()
     if src.strip().startswith('data:'):
         return src
@@ -170,7 +156,6 @@ def data_to_base64(index, src, verbose=True):
 
 css_encoding_re = re.compile(r'''@charset\s+["']([-_a-zA-Z0-9]+)["']\;''', re.I)
 
-
 def handle_css_content(index, css, verbose=True):
     if not css:
         return css
@@ -185,34 +170,21 @@ def handle_css_content(index, css, verbose=True):
                 css = css.decode(mo.group(1))
             except:
                 log('[ WARN ] failed to convert css to encoding %s' % mo.group(1), 'yellow')
-    # Watch out! how to handle urls which contain parentheses inside? Oh god, css does not support such kind of urls
-    # I tested such url in css, and, unfortunately, the css rule is broken. LOL!
-    # I have to say that, CSS is awesome!
     reg = re.compile(r'url\s*\((.+?)\)')
 
     def repl(matchobj):
         src = matchobj.group(1).strip(' \'"')
-        # if src.lower().endswith('woff') or src.lower().endswith('ttf') or src.lower().endswith('otf') or src.lower().endswith('eot'):
-        #     # dont handle font data uri currently
-        #     return 'url(' + src + ')'
         return 'url(' + data_to_base64(index, src, verbose=verbose) + ')'
 
     css = reg.sub(repl, css)
     return css
 
-
 def generate(index, verbose=True, comment=True, keep_script=False, prettify=False, full_url=True, verify=True,
              errorpage=False):
-    """
-    given a index url such as http://www.google.com, http://custom.domain/index.html
-    return generated single html
-    """
     html_doc, extra_data = get(index, verbose=verbose, verify=verify, ignore_error=errorpage)
 
     if extra_data and extra_data.get('url'):
         index = extra_data['url']
-
-    # now build the dom tree
     soup = BeautifulSoup(html_doc, 'lxml')
     soup_title = soup.title.string if soup.title else ''
 
@@ -234,11 +206,7 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
                     css[attr] = link[attr]
                 css_data, _ = get(index, relpath=link['href'], verbose=verbose)
                 new_css_content = handle_css_content(absurl(index, link['href']), css_data, verbose=verbose)
-                # if "stylesheet/less" in '\n'.join(link.get('rel') or []).lower():    # fix browser side less: http://lesscss.org/#client-side-usage
-                #     # link['href'] = 'data:text/less;base64,' + base64.b64encode(css_data)
-                #     link['data-href'] = link['href']
-                #     link['href'] = absurl(index, link['href'])
-                if False:  # new_css_content.find('@font-face') > -1 or new_css_content.find('@FONT-FACE') > -1:
+                if False: 
                     link['href'] = 'data:text/css;base64,' + base64.b64encode(new_css_content)
                 else:
                     css.string = new_css_content
@@ -262,9 +230,6 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
             elif js_str.find(']]>') < 0:
                 code.string = '<!--//--><![CDATA[//><!--\n' + js_str + '\n//--><!]]>'
             else:
-                # replace ]]> does not work at all for chrome, do not believe
-                # http://en.wikipedia.org/wiki/CDATA
-                # code.string = '<![CDATA[\n' + js_str.replace(']]>', ']]]]><![CDATA[>') + '\n]]>'
                 code.string = js_str.encode('utf-8')
         except:
             if verbose:
@@ -276,13 +241,6 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
             continue
         img['data-src'] = img['src']
         img['src'] = data_to_base64(index, img['src'], verbose=verbose)
-
-        # `img` elements may have `srcset` attributes with multiple sets of images.
-        # To get a lighter document it will be cleared, and used only the standard `src` attribute
-        # Maybe add a flag to enable the base64 conversion of each `srcset`?
-        # For now a simple warning is displayed informing that image has multiple sources
-        # that are stripped.
-
         if img.get('srcset'):
             img['data-srcset'] = img['srcset']
             del img['srcset']
@@ -312,65 +270,15 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
         elif tag.name == 'style':
             if tag.string:
                 tag.string = handle_css_content(index, tag.string, verbose=verbose)
-
-    # finally insert some info into comments
-    if comment:
-        for html in soup('html'):
-            html.insert(0, BeautifulSoup('<!-- \n single html processed by https://github.com/zTrix/webpage2html\n '
-                                         'title: %s\n url: %s\n date: %s\n-->' % (soup_title, index, datetime.datetime.
-                                                                                  now().ctime()), 'lxml'))
-            break
     if prettify:
         return soup.prettify(formatter='html')
     else:
         return str(soup)
-
-
-def usage():
-    print("""
-usage:
-    $ webpage2html [options] some_url
-options:
-    -h, --help              help page, you are reading this now!
-    -q, --quite             don't show verbose url get log in stderr
-    -s, --script            keep javascript in the generated html
-examples:
-    $ webpage2html -h
-        you are reading this help message
-    $ webpage2html http://www.google.com > google.html
-        save google index page for offline reading, keep style untainted
-    $ webpage2html -s http://gabrielecirulli.github.io/2048/ > 2048.html
-        save dynamic page with Javascript example
-        the 2048 game can be played offline after being saved
-    $ webpage2html /path/to/xxx.html > xxx_single.html
-        combine local saved xxx.html with a directory named xxx_files together into a single html file
-""")
-
-
-def main(url2dw,count):
-    kwargs = {}
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-q', '--quite', action='store_true', help="don't show verbose url get log in stderr")
-    parser.add_argument('-s', '--script', action='store_true', help="keep javascript in the generated html ")
-    parser.add_argument('-k', '--insecure', action='store_true', help="ignore the certificate")
-    parser.add_argument('--errorpage', action='store_true', help="crawl an error page")
-    parser.add_argument('-o', '--output', help="save output to")
-    args = parser.parse_args()
+def core(url2dw,count):
     temp=str(count)+'.html'
-    args.output=temp
-    if args.quite:
-        kwargs['verbose'] = False
-    if args.script:
-        kwargs['keep_script'] = True
-    if args.insecure:
-        kwargs['verify'] = False
-    if args.errorpage:
-        kwargs['errorpage'] = True
-    rs = generate(url2dw, **kwargs)
-    if args.output and args.output != '-':
-        with open(args.output,'w') as f:
+    rs = generate(url2dw)
+    if temp and temp != '-':
+        with open(temp,'w') as f:
             f.write(rs)
     else:
         sys.stdout.write(rs)
-if __name__ == '__main__':
-    main()
