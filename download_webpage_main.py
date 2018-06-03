@@ -4,6 +4,6 @@ def dothis(urlin,count):
 file=open('output.txt','r')
 i=1
 for link in file:
-	print ("Downloading "+link)
-	dothis(link,i)
+	print ("Downloading "+link.rstrip())
+	dothis(link.rstrip(),i)
 	i+=1
