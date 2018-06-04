@@ -46,6 +46,7 @@ def get(index, relpath=None, verbose=True, usecache=True, verify=True, ignore_er
             if verbose:
                 log('[ WARN ] invalid path, %s %s' % (index, relpath), 'yellow')
             return '', None
+        full_path.strip()
         full_path = quote(full_path, safe="%/:=&?~#+!$,;'@()*[]")
         if usecache:
             if full_path in webpage2html_cache:
@@ -275,6 +276,7 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
     else:
         return str(soup)
 def core(url2dw,count):
+    url2dw.strip()
     temp=str(count)+'.html'
     rs = generate(url2dw)
     if temp and temp != '-':
