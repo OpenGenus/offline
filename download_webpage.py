@@ -13,6 +13,7 @@ if sys.version > '3':
 else:
     from urlparse import urlparse, urlunsplit, urljoin
     from urllib import quote
+import json
 re_css_url = re.compile('(url\(.*?\))')
 webpage2html_cache = {}
 def log(s, color=None, on_color=None, attrs=None, new_line=True):
@@ -215,6 +216,9 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
             elif full_url:
                 link['data-href'] = link['href']
                 link['href'] = absurl(index, link['href'])
+        
+
+
     for js in soup('script'):
         if not keep_script:
             js.replace_with('')
@@ -271,6 +275,15 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
         elif tag.name == 'style':
             if tag.string:
                 tag.string = handle_css_content(index, tag.string, verbose=verbose)
+    with open('mapping.json') as jsonfile:
+        jsondata=json.load(jsonfile)
+    for linktemp in soup.find_all('a'):
+        for indx in jsondata['index']:
+            try:
+                if indx['url']==linktemp['href']:
+                    linktemp['href']=indx['filename']
+            except KeyError:
+                pass
     if prettify:
         return soup.prettify(formatter='html')
     else:
