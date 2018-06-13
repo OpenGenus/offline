@@ -13,7 +13,7 @@ if sys.version > '3':
 else:
     from urlparse import urlparse, urlunsplit, urljoin
     from urllib import quote
-
+import customheader
 re_css_url = re.compile('(url\(.*?\))')
 webpage2html_cache = {}
 def log(s, color=None, on_color=None, attrs=None, new_line=True):
@@ -188,6 +188,7 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
     if extra_data and extra_data.get('url'):
         index = extra_data['url']
     soup = BeautifulSoup(html_doc, 'lxml')
+    soup=customheader.addheader(soup)
     soup_title = soup.title.string if soup.title else ''
 
     for link in soup('link'):
