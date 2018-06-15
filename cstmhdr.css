@@ -1,0 +1,28 @@
+body{
+			margin:0;
+			}
+.cheader {
+  padding: 10px 16px;
+  overflow: hidden;
+  background-color: #ebebe0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+}
+#cstmhdri2{
+  position:absolute;
+  top:20px;
+  right:50px;
+}
+.content {
+  padding: 16px;
+}
+.sticky {
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+.sticky + .content {
+  padding-top: 102px;
+}
