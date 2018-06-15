@@ -1,11 +1,26 @@
 from bs4 import BeautifulSoup as bs
 import lxml
 def addheader(sp):
+	new_link =  sp.new_tag("link")
+	new_link.attrs["href"] = "cstmhdr.css"
+	sp.head.insert(0,new_link)
 	tag=sp.body
-	temp='''<center><br><nav><a href=\"https://discourse.opengenus.org\"><img src=\"https://discourse.opengenus.org/uploads/opengenus/original/1X/b2f73aeb998e62df86bce346aae9de58784e0fcd.png\" alt= \"OpenGenus\" height=\"70\" width=\"70\"></a> | 
-	<a href=\"https://twitter.com/opengenus?lang=en\"><img src=\"https://en.wikipedia.org/wiki/File:Twitter_bird_logo_2012.svg\" alt=\"OpenGenus Twitter\" height=\"70\" width=\"70\"></a> | 
-	<a href=\"https://github.com/OpenGenus\"><img src = \"https://assets-cdn.github.com/images/modules/logos_page/GitHub-Mark.png\" alt =\"OpenGenus Github\" height=\"70\" width=\"70\"></a> | 
-	<a href=\"https://in.linkedin.com/company/opengenus\"><img src=\"https://static.licdn.com/sc/h/95o6rrc5ws6mlw6wqzy0xgj7y\" alt=\"Opengenus LinkedIn\" height=\"70\" width=\"150\"></a></nav></center>'''
-	newsoup=bs(temp,'lxml')
-	tag.insert(0,newsoup)
+	new_tag=sp.new_tag('div',**{'class':'cheader'},id="cstmhdrdiv")
+	tag.insert(0,new_tag)
+	tag=sp.find("div",{"id":"cstmhdrdiv"})
+	new_tag=sp.new_tag('nav',id="cstmhdrnav")
+	tag.append(new_tag)
+	tag=sp.find("nav",{"id":"cstmhdrnav"})
+	new_tag=sp.new_tag('a',href="https://discourse.opengenus.org",id="cstmhdra1")
+	tag.append(new_tag)
+	new_tag=sp.new_tag('img',src="https://discourse-cdn-sjc2.com/standard17/uploads/opengenus/original/1X/5c936e504d024c2da59395fe5a9ca54241106f1b.png", alt="OpenGenus",height="50", width="205",id="cstmhdri1")
+	tag=sp.find("a",{"id":"cstmhdra1"})
+	tag.append(new_tag)
+	new_tag=sp.new_tag('a',href="https://twitter.com/opengenus?lang=en",id="cstmhdra2")
+	tag.append(new_tag)
+	new_tag=sp.new_tag('img',src="https://logos-download.com/wp-content/uploads/2016/02/Twitter_logo_bird_transparent_png.png", alt="OpenGenus Twitter",height="35", width="43",id="cstmhdri2")
+	tag=sp.find("a",{"id":"cstmhdra2"})
+	tag.append(new_tag)
+	#jstag =  sp.new_tag('script',type="text/javascript",src="cstmhdr.js")
+	#sp.body.append(jstag)
 	return sp
