@@ -6,6 +6,7 @@ import re
 import sys
 import requests
 import time
+import lxml
 from bs4 import BeautifulSoup
 from termcolor import colored
 if sys.version > '3':
@@ -27,6 +28,10 @@ def log(s, color=None, on_color=None, attrs=None, new_line=True):
 
 
 def absurl(index, relpath=None, normpath=None):
+    if index=="cstmhdr.css" or relpath=="cstmhdr.css" :
+        return index
+    if index=="cstmhdr.js" or relpath=="cstmhdr.js" :
+        return index
     if normpath is None:
         normpath = lambda x: x
     if index.lower().startswith('http') or (relpath and relpath.startswith('http')):
@@ -40,6 +45,14 @@ def absurl(index, relpath=None, normpath=None):
 
 
 def get(index, relpath=None, verbose=True, usecache=True, verify=True, ignore_error=False):
+    if index=="cstmhdr.css" or relpath=="cstmhdr.css" :
+        with open('cstmhdr.css', 'r') as myfile:
+            data=myfile.read().replace('\n', '')
+            return str(data),None
+    if index=="cstmhdr.js" or relpath=="cstmhdr.js" :
+        with open('cstmhdr.js', 'r') as myfile:
+            data=myfile.read().replace('\n', '')
+            return str(data),None
     global webpage2html_cache
     if index.startswith('http') or (relpath and relpath.startswith('http')):
         full_path = absurl(index, relpath)
@@ -221,7 +234,9 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
 
 
     for js in soup('script'):
-        if not keep_script:
+        jstemp=js.get('src')
+        jstemp=str(jstemp)
+        if not keep_script and jstemp !="cstmhdr.js":
             js.replace_with('')
             continue
         if not js.get('src'):
