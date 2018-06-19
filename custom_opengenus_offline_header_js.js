@@ -1,6 +1,6 @@
 window.onscroll = function() {myFunction()};
 
-var header = document.getElementById("cstmhdrdiv");
+var header = document.getElementById("custom_opengenus_offline_header_div");
 var sticky = header.offsetTop;
 
 function myFunction() {
