@@ -28,9 +28,9 @@ def log(s, color=None, on_color=None, attrs=None, new_line=True):
 
 
 def absurl(index, relpath=None, normpath=None):
-    if index=="cstmhdr.css" or relpath=="cstmhdr.css" :
+    if index=="custom_opengenus_offline_header_css.css" or relpath=="custom_opengenus_offline_header_css.css" :
         return index
-    if index=="cstmhdr.js" or relpath=="cstmhdr.js" :
+    if index=="custom_opengenus_offline_header_js.js" or relpath=="custom_opengenus_offline_header_js.js" :
         return index
     if normpath is None:
         normpath = lambda x: x
@@ -45,12 +45,12 @@ def absurl(index, relpath=None, normpath=None):
 
 
 def get(index, relpath=None, verbose=True, usecache=True, verify=True, ignore_error=False):
-    if index=="cstmhdr.css" or relpath=="cstmhdr.css" :
-        with open('cstmhdr.css', 'r') as myfile:
+    if index=="custom_opengenus_offline_header_css.css" or relpath=="custom_opengenus_offline_header_css.css" :
+        with open('custom_opengenus_offline_header_css.css', 'r') as myfile:
             data=myfile.read().replace('\n', '')
             return str(data),None
-    if index=="cstmhdr.js" or relpath=="cstmhdr.js" :
-        with open('cstmhdr.js', 'r') as myfile:
+    if index=="custom_opengenus_offline_header_js.js" or relpath=="custom_opengenus_offline_header_js.js" :
+        with open('custom_opengenus_offline_header_js.js', 'r') as myfile:
             data=myfile.read().replace('\n', '')
             return str(data),None
     global webpage2html_cache
@@ -236,7 +236,7 @@ def generate(index, verbose=True, comment=True, keep_script=False, prettify=Fals
     for js in soup('script'):
         jstemp=js.get('src')
         jstemp=str(jstemp)
-        if not keep_script and jstemp !="cstmhdr.js":
+        if not keep_script and jstemp !="custom_opengenus_offline_header_js.js":
             js.replace_with('')
             continue
         if not js.get('src'):
