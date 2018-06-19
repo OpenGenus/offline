@@ -8,7 +8,7 @@ body{
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 10000;
 }
 #custom_opengenus_offline_header_i2{
   position:absolute;
